@@ -1,24 +1,19 @@
 import express from 'express';
+import { NodemailerMailAdapter } from '../adapters/nodemailer/nodemailer-mail-adapter';
 
-import nodemailer from 'nodemailer';
 import { PrismaFeedbacksRepository } from '../repositories/prisma/PrismaFeedbacksRepository';
 import { SubmitFeedbackUseCase } from '../use-cases/submit-feedback-use-case';
 
 export const routes = express.Router()
 
-const transport = nodemailer.createTransport({
-    host: "smtp.mailtrap.io",
-    port: 2525,
-    auth: {
-        user: "c7faa9cba56535",
-        pass: "9b2e2936ad4c70"
-    }
-});
-
 routes.post('/feedbacks', async (req, res) => {
     const {type, comment, screenshot} = req.body;
+    const nodemailerMailAdapter = new NodemailerMailAdapter();
     const prismaFeedbacksRepository = new PrismaFeedbacksRepository();
-    const submitFeedbackUseCase = new SubmitFeedbackUseCase(prismaFeedbacksRepository);
+    const submitFeedbackUseCase = new SubmitFeedbackUseCase(
+        prismaFeedbacksRepository,
+        nodemailerMailAdapter
+    );
 
     await submitFeedbackUseCase.execute({
         type,
